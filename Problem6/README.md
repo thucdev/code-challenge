@@ -83,13 +83,13 @@ sequenceDiagram
 
     U->>API: POST /actions/{actionId}/complete<br/>(Bearer JWT, Idempotency-Key)
     API->>API: Verify JWT, check rate limit
-    API->>DB: BEGIN; SELECT action FOR UPDATE
+    API->>DB: BEGIN, SELECT action FOR UPDATE
 
     alt Action missing, owned by another user, expired, or already completed
         API->>DB: ROLLBACK
         API-->>U: 403 / 404 / 409 / 410
     else Completed faster than the minimum allowed duration
-        API->>DB: Mark action REJECTED, log suspicious event; COMMIT
+        API->>DB: Mark action REJECTED, log suspicious event, COMMIT
         API-->>U: 422 ACTION_TOO_FAST
     else Valid
         API->>DB: UPDATE action SET status=COMPLETED
